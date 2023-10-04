@@ -1,29 +1,46 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-   name: nginx
-   labels:
-     app: nginx
+  name: nginx
+  labels:
+    tier: backend
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: nginx
-      run: nginx
-  replicas: 1
+      tier: backend
   template:
     metadata:
       labels:
-        run: nginx
         app: nginx
+        tier: backend
     spec:
+      volumes:
+      - name: code
+        persistentVolumeClaim:
+          claimName: code
+      - name: config
+        configMap:
+          name: nginx-config
+          items:
+          - key: config
+            path: site.conf
       containers:
-        - name: nginx-container
-          image: x3nomorpheus/nginx
-          resources:
-            limits:
-              cpu: 50m
-            requests:
-              cpu: 20m
+      - name: nginx
+        image: x3nomorpheus/nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: code
+          mountPath: /code
+        - name: config
+          mountPath: /etc/nginx/conf.d
+	resources:
+          limits:
+            cpu: 50m
+          requests:
+            cpu: 20m
 ---
 apiVersion: v1
 kind: Service
