@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: mariadb
+spec:
+  selector:
+    matchLabels:
+      run: mariadb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: mariadb
+    spec:
+      containers:
+        - name: mariadb-container
+          image: x3nomorpheus/mariadb
+          resources:
+            limits:
+              cpu: "70m"
+              memory: "512Mi"
+            requests:
+              cpu: "40m"
+              memory: "256Mi"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      run: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: redis
+    spec:
+      containers:
+        - name: redis-container
+          image: x3nomorpheus/redis
+          resources:
+            limits:
+              cpu: "70m"
+              memory: "512Mi"
+            requests:
+              cpu: "40m"
+              memory: "256Mi"
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mariadb-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mariadb
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: redis
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 50
