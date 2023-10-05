@@ -3,23 +3,20 @@ kind: Deployment
 metadata:
   name: nginx
   labels:
-    tier: backend
+    env: prod
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: nginx
-      tier: backend
+      env: prod
   template:
     metadata:
       labels:
         app: nginx
-        tier: backend
+        env: prod
     spec:
       volumes:
-      - name: code
-        persistentVolumeClaim:
-          claimName: code
       - name: config
         configMap:
           name: nginx-config
@@ -32,8 +29,6 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: code
-          mountPath: /code
         - name: config
           mountPath: /etc/nginx/conf.d
 	resources:
@@ -41,15 +36,3 @@ spec:
             cpu: 50m
           requests:
             cpu: 20m
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-spec:
-  ports:
-    - port: 80
-      targetPort: 80
-  type: LoadBalancer
-  selector:
-   app: nginx
