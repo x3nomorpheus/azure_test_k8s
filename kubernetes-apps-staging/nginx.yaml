@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-staging
+  labels:
+    env: prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-staging
+      env: prod
+  template:
+    metadata:
+      labels:
+        app: nginx-staging
+        env: prod
+    spec:
+      volumes:
+      - name: config
+        configMap:
+          name: nginx-staging-config
+          items:
+          - key: config
+            path: site.conf
+      containers:
+      - name: nginx-staging
+        image: x3nomorpheus/nginx-staging
+        resources:
+          limits:
+            cpu: 50m
+          requests:
+            cpu: 20m
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config
+          mountPath: /etc/nginx-staging/conf.d

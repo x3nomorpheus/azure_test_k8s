@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-staging-config
+  labels:
+    tier: backend-staging
+data:
+  config : |
+    server {
+      error_log  /var/log/nginx/staging-error.log;
+      access_log /var/log/nginx/staging-access.log;
+      
+      location / {
+        proxy_pass http://react-staging:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+
+      location ~ /api/ {
+        proxy_pass http://php-staging:80;
+      	proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    }
